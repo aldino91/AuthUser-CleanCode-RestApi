@@ -1,10 +1,13 @@
-import { Request, Response } from 'express';
 import { RegisterUserDto } from '../../domain/dtos/auth/register-user.dto';
 import { AuthServices } from '../services.ts/auth.services';
-import { CustomError, LoginUserDto } from '../../domain';
+import { CustomError, LoginUserDto, UserRepository } from '../../domain';
+import { Request, Response } from 'express';
+import { UserRepositoryImpl } from '../../infrastucture/repositories/user.repository.imple';
+import { LoginUserUseCase } from '../../domain/use-cases/user/auth-login';
+import { RegisterUserUseCase } from '../../domain/use-cases/user/auth-register';
 
 export class AuthController {
-	constructor(public readonly authService: AuthServices) {}
+	constructor(public readonly userRepository: UserRepository) {}
 
 	private handlerError = (error: unknown, res: Response) => {
 		if (error instanceof CustomError) {
@@ -20,10 +23,12 @@ export class AuthController {
 
 		if (error) res.status(400).json({ error });
 
-		this.authService
-			.registerUser(registerDto!)
-			.then((user) => res.json(user))
-			.catch((error) => this.handlerError(error, res));
+		// this.userRepository.register(registerDto!);
+
+		new RegisterUserUseCase(this.userRepository)
+			.execute(registerDto!)
+			.then((todos) => res.json(todos))
+			.catch((error) => res.status(400).json({ error }));
 	};
 
 	login = (req: Request, res: Response) => {
@@ -31,10 +36,12 @@ export class AuthController {
 
 		if (error) return res.status(400).json({ error });
 
-		this.authService
-			.loginUser(loginUserDto!)
+		// this.userRepository.login(loginUserDto!);
+
+		new LoginUserUseCase(this.userRepository)
+			.execute(loginUserDto!)
 			.then((user) => res.json(user))
-			.catch((error) => this.handlerError(error, res));
+			.catch((error) => res.status(400).json({ error }));
 	};
 
 	validateEmail = (req: Request, res: Response) => {

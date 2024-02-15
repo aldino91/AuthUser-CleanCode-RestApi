@@ -1,14 +1,22 @@
-import { Router } from 'express';
 import { AuthController } from './controller';
-import { AuthServices } from '../services.ts/auth.services';
+// import { AuthServices } from '../services.ts/auth.services';
+import { UserDatasourcePostImple } from '../../infrastucture/datasources/user.datasources-postgres.imple';
+import { UserRepositoryImpl } from '../../infrastucture/repositories/user.repository.imple';
+import { Router } from 'express';
+import { UserDatasourceMongoImple } from '../../infrastucture/datasources/user.dasatources-mongo.imple';
 
 export class AuthRoutes {
 	static get routes(): Router {
 		const router = Router();
 
-		const authService = new AuthServices();
+		const datasources = new UserDatasourceMongoImple();
+		// const datasources = new UserDatasourcePostImple();
 
-		const controller = new AuthController(authService);
+		const respository = new UserRepositoryImpl(datasources);
+
+		// const authService = new AuthServices();
+
+		const controller = new AuthController(respository);
 
 		// Definir las rutas
 		router.post('/login', controller.login);
